@@ -94,7 +94,6 @@ recognition.onresult = async (event) => {
 
 recognition.onerror = (event) => {
     status.textContent = "Error: " + event.error;
-    if (event.error === 'no-speech') {
-        if (isActive) recognition.start();
-    }
+   
 };
+
