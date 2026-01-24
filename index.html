@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Voice Assisstant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="hud-grid"></div>
+
+<header class="topbar">
+    <div class="title">Imran Assisstant</div>
+</header>
+
+<main class="layout">
+
+    <!-- LEFT -->
+    <section class="panel left">
+        <h3>AI INPUT CORE</h3>
+        <div  class="log">
+           <h3>Awaiting voice command...</h3> 
+           <p id="status"></p>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">ACTIVATE</button>
+            <button id="stopBtn">STOP</button>
+        </div>
+    </section>
+
+    <!-- CENTER -->
+    <section class="center">
+        <div class="reactor">
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <div class="ring r3"></div>
+            <div class="core"></div>
+        </div>
+        <p class="ai-text" id="aiactive">AI Voice Assisstant </p>
+    </section>
+
+    <section class="panel right">
+        <h3>SYSTEM OUTPUT</h3>
+        <div class="log">
+            <h3>Response stream initialized...</h3>
+            <p id="output"></hp>
+        </div>
+    </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
