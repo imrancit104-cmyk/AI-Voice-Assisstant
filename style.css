@@ -10,6 +10,7 @@ body {
     background: radial-gradient(circle at center, #071b24, #02090d);
     color: #8fefff;
     overflow-x: hidden;
+    height: 100%;
 }
 
 .hud-grid {
@@ -18,7 +19,7 @@ body {
     background:
         linear-gradient(rgba(143,239,255,0.1) 0.0625rem, transparent 0.0625rem),
         linear-gradient(90deg, rgba(143,239,255,.1) 0.0625rem, transparent 0.0625rem);
-    background-size: 2.5rem 2.5rem;
+    background-size: 2rem 2rem;
     z-index: -1;
 }
 
@@ -40,7 +41,7 @@ body {
 .layout {
     height: 87vh;
     display: grid;
-    grid-template-columns: 2.2fr 1.6fr 2.2fr;
+    grid-template-columns: 2.1fr 1.8fr 2.1fr;
     padding: 2.5rem;
     gap: 2.5rem;
 }
