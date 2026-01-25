@@ -30,7 +30,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(143,239,255,.3);
+    border-bottom: 2px solid rgba(143,239,255,.3);
 }
 
 .title {
@@ -40,7 +40,7 @@ body {
 }
 
 .layout {
-    height: 89vh;
+    height: 87vh;
     display: grid;
     grid-template-columns: 2.2fr 1.6fr 2.2fr;
     padding: 40px;
@@ -118,9 +118,10 @@ button:active{
     background: #8fefff;
     box-shadow: 0 0 40px #8fefff, inset 0 0 25px #8fefff;
     z-index: 10;
+
 }
 
-.ring {
+.ring  {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -138,7 +139,7 @@ button:active{
     animation: wavePulse 2.8s ease-out infinite;
     opacity: 0.8;
     border-color: #8fefff;
-    box-shadow: 0 0 50px rgba(143,239,255,.9);
+    box-shadow: 0 0 50px rgba(143,239,255,.6);
 }
 
 @keyframes wavePulse {
@@ -148,10 +149,15 @@ button:active{
 }
 
 .ai-text {
+    text-align: center;
     margin-top: 20px;
     font-size: 1.2rem;
     opacity: .8;
     letter-spacing: 1px;
+    border: 1px solid #8fefff;
+    width: 17rem;
+    height: 3rem;
+    padding: 0.5rem;
 }
 
 @media (max-width: 1024px) {
@@ -159,3 +165,19 @@ button:active{
         grid-template-columns: 1fr;
     }
 }
+
+.righpannelh3 {
+    margin-top: 20px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: #7ffcff;
+}
+
+.pannel_right_p {
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    margin: 4px 0;
+        letter-spacing: 2px;
+}
+
+
