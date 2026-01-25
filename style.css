@@ -17,8 +17,8 @@ body {
     position: fixed;
     inset: 0;
     background:
-        linear-gradient(rgba(143,239,255,.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(143,239,255,.05) 1px, transparent 1px);
+        linear-gradient(rgba(143,239,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(143,239,255,.1) 1px, transparent 1px);
     background-size: 40px 40px;
     z-index: -1;
 }
@@ -51,7 +51,8 @@ body {
     background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.6));
     border-radius: 22px;
     padding: 30px;
-    border: 1px solid rgba(143,239,255,.25);
+    
+    border: 1px solid #8fefff;
     box-shadow: 0 25px 60px rgba(0,0,0,0.6);
 }
 
@@ -64,9 +65,10 @@ body {
 .log {
     height: 260px;
     background: rgba(0,0,0,.65);
-    border: 1px solid rgba(143,239,255,.35);
+    border: 1px solid #8fefff;
     padding: 15px;
     line-height: 1.6;
+    overflow-y:auto ;
 }
 .controls {
     display: flex;
@@ -136,7 +138,7 @@ button:active{
     animation: wavePulse 2.8s ease-out infinite;
     opacity: 0.8;
     border-color: #8fefff;
-    box-shadow: 0 0 25px rgba(143,239,255,.6);
+    box-shadow: 0 0 50px rgba(143,239,255,.9);
 }
 
 @keyframes wavePulse {
