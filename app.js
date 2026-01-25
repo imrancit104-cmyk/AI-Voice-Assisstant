@@ -10,7 +10,6 @@ const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognit
 recognition.lang = 'en-US';
 recognition.continuous = true;
 const rings = document.querySelectorAll('.ring');
-
 const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
@@ -31,7 +30,6 @@ async function getGroqResponse(userText) {
     
             })
         });
-
         const data = await response.json();
         if (data.choices && data.choices.length > 0) {
             return data.choices[0].message.content;
@@ -42,7 +40,6 @@ async function getGroqResponse(userText) {
         return "There was an error connecting to the assistant service.";
     }
 }
-
 startBtn.addEventListener('click', () => {
    if (!isActive) {
         isActive = true;
@@ -63,6 +60,7 @@ stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
          aiActive.textContent="AI Voice Assisstant Disable"
+         output.innerHTML='';
         if (controller) {
             controller.abort();
             controller = null;
@@ -75,25 +73,30 @@ stopBtn.addEventListener('click', () => {
         rings.forEach(ring => ring.classList.remove('pulse'));
     }
 });
+recognition.onerror = (event) => {
+    if(event.error=='network'){
+ status.textContent = 'Please check your Internet connection.';
+    } 
+};
 
 recognition.onresult = async (event) => {
     const userText = event.results[0][0].transcript.toLowerCase();
     status.textContent = `You asked: "${userText}" | Thinking...`;
     recognition.stop();
     const answer = await getGroqResponse(userText);
-    if (!answer || !isActive) return;
+    if (!answer || !isActive) 
+        return;
     status.textContent = `You asked: "${userText}"`;
     output.innerHTML=answer;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
+
     utterance.onend = () => {
-        if (isActive) {
+        if (isActive) 
+            {
             recognition.start();
         }
     };
-};
-recognition.onerror = (event) => {
-    status.textContent = "Error: " + event.error;
 };
 
