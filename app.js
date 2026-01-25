@@ -65,7 +65,7 @@ stopBtn.addEventListener('click', () => {
          aiActive.textContent="AI Voice Assisstant Disable"
         if (controller) {
             controller.abort();
-            controller = 0;
+            controller = null;
         }
         recognition.stop();
         speechSynthesis.cancel();
@@ -78,11 +78,6 @@ stopBtn.addEventListener('click', () => {
 
 recognition.onresult = async (event) => {
     const userText = event.results[0][0].transcript.toLowerCase();
-//     if(userText.includes("open whatsapp")) {
-//        const phoneNumber = "+923417449374"; 
-// const message = "Hello Ali, this is JARVIS!";
-// window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, "_blank");
-//     }
     status.textContent = `You asked: "${userText}" | Thinking...`;
     recognition.stop();
     const answer = await getGroqResponse(userText);
@@ -101,3 +96,4 @@ recognition.onresult = async (event) => {
 recognition.onerror = (event) => {
     status.textContent = "Error: " + event.error;
 };
+
