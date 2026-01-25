@@ -1,33 +1,34 @@
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const status = document.getElementById('status');
-const endSound = new Audio('endsound.mp3');
 let output=document.getElementById('output');
 let aiActive=document.getElementById('aiactive');
 let isActive = false;
-
+let controller;
+const endSound = new Audio('endsound.mp3');
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
 recognition.continuous = true;
-
-const GROQ_API_KEY = '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';
-
 const rings = document.querySelectorAll('.ring');
 
+const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
+        controller = new AbortController();
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${GROQ_API_KEY}`
             },
+            signal:controller.signal,
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: "You are a helpful assistant. Keep your responses concise and suitable for voice output." },
                     { role: "user", content: userText }
-                ]
+                ],
+    
             })
         });
 
@@ -38,7 +39,6 @@ async function getGroqResponse(userText) {
             return "I'm sorry, I couldn't process that request.";
         }
     } catch (error) {
-        console.error("Error fetching from Groq:", error);
         return "There was an error connecting to the assistant service.";
     }
 }
@@ -53,18 +53,20 @@ startBtn.addEventListener('click', () => {
         recognition.stop();
         let testing = new SpeechSynthesisUtterance('Greetings, I am your AI assistant. How can I assist you today?');
         testing.lang = 'en-US';
-speechSynthesis.speak(testing);
+        speechSynthesis.speak(testing);
         testing.onend = () => {
             recognition.start();
         };
-
-        
     }
 });
 stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
          aiActive.textContent="AI Voice Assisstant Disable"
+        if (controller) {
+            controller.abort();
+            controller = 0;
+        }
         recognition.stop();
         speechSynthesis.cancel();
         endSound.play();
@@ -75,25 +77,27 @@ stopBtn.addEventListener('click', () => {
 });
 
 recognition.onresult = async (event) => {
-    const userText = event.results[0][0].transcript;
+    const userText = event.results[0][0].transcript.toLowerCase();
+//     if(userText.includes("open whatsapp")) {
+//        const phoneNumber = "+923417449374"; 
+// const message = "Hello Ali, this is JARVIS!";
+// window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, "_blank");
+//     }
     status.textContent = `You asked: "${userText}" | Thinking...`;
     recognition.stop();
     const answer = await getGroqResponse(userText);
+    if (!answer || !isActive) return;
     status.textContent = `You asked: "${userText}"`;
     output.innerHTML=answer;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
-
     utterance.onend = () => {
         if (isActive) {
             recognition.start();
         }
     };
 };
-
 recognition.onerror = (event) => {
     status.textContent = "Error: " + event.error;
-   
 };
-
