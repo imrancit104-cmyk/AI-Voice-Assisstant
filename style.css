@@ -10,15 +10,14 @@ body {
     background: radial-gradient(circle at center, #071b24, #02090d);
     color: #8fefff;
     overflow-x: hidden;
-    height: 100%;
 }
 
 .hud-grid {
     position: fixed;
     inset: 0;
     background:
-        linear-gradient(rgba(143,239,255,0.1) 0.0625rem, transparent 0.0625rem),
-        linear-gradient(90deg, rgba(143,239,255,.1) 0.0625rem, transparent 0.0625rem);
+        linear-gradient(rgba(143,239,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(143,239,255,.05) 1px, transparent 1px);
     background-size: 2rem 2rem;
     z-index: -1;
 }
@@ -162,10 +161,15 @@ button:active {
     .layout {
         grid-template-columns: 1fr;
     }
+    button{
+    margin-top: 1.5rem;
 }
-
+.log{
+    height: 22rem;
+}
+}
 .righpannelh3 {
-    margin-top: 1.25rem;
+    margin-top: 2rem;
     font-size: 0.875rem;
     letter-spacing: 0.125rem;
     color: #7ffcff;
@@ -177,3 +181,4 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
+
