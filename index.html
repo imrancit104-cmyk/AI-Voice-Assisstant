@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assisstant</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,17 +10,16 @@
 <div class="hud-grid"></div>
 
 <header class="topbar">
-    <div class="title">Imran Assisstant</div>
+    <div class="title">ARIM Assisstant</div>
 </header>
 
 <main class="layout">
 
     <!-- LEFT -->
     <section class="panel left">
-        <h3>AI INPUT CORE</h3>
-        <div  class="log">
-           <h3>Awaiting voice command...</h3> 
-           <p id="status"></p>
+        <h3>USER INPUT </h3>
+        <div id="status" class="log">
+            Awaiting voice command...
         </div>
 
         <div class="controls">
@@ -38,16 +36,17 @@
             <div class="ring r3"></div>
             <div class="core"></div>
         </div>
-        <p class="ai-text" id="aiactive">AI Voice Assisstant </p>
+        <p class="ai-text" id="aiactive">AI Voice Assisstant</p>
     </section>
 
+    <!-- RIGHT -->
     <section class="panel right">
         <h3>SYSTEM OUTPUT</h3>
-        <div class="log">
-            <h3>Response stream initialized...</h3>
-            <p id="output"></hp>
+        <div class="log ghost">
+            Response stream initialized...
+            <p id="output"></p>
         </div>
-       <h3 class="righpannelh3">CURRENT MODE</h3>
+        <h3 class="righpannelh3">CURRENT MODE</h3>
        <p class="pannel_right_p">◉ LISTENING..</p>
        <p class="pannel_right_p">○ PROCESSING..</p>
        <p class="pannel_right_p">○ SPEAKING..</p>
@@ -56,7 +55,5 @@
 </main>
 
 <script src="app.js"></script>
-
 </body>
 </html>
-
