@@ -46,7 +46,7 @@ startBtn.addEventListener('click', () => {
         isActive = true;
         core.style.backgroundColor='#8fefff'
         core.style.boxShadow='0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
-        aiActive.textContent = "AI Voice Assistant Active";
+        aiActive.textContent = "ARIM Assistant Active";
         status.textContent = "Assistant is listening...";
         startBtn.disabled = true;
         rings.forEach(r => r.classList.remove('ring-error','pulse2'));
@@ -67,7 +67,7 @@ startBtn.addEventListener('click', () => {
 stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
-        aiActive.textContent = "AI Voice Assistant Disabled";
+        aiActive.textContent = "ARIM Assistant Disabled";
         output.innerHTML = '';
         if (controller) {
             controller.abort();
@@ -126,3 +126,4 @@ recognition.onresult = async (event) => {
         }
     };
 };
+
