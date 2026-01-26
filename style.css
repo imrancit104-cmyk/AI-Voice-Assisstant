@@ -23,7 +23,7 @@ body {
 }
 
 .topbar {
-    height: 3.75rem;
+    height: 3rem;
     padding: 0 3.125rem;
     display: flex;
     justify-content: space-between;
@@ -38,9 +38,9 @@ body {
 }
 
 .layout {
-    height: 87vh;
+    height: 83vh;
     display: grid;
-    grid-template-columns: 2.1fr 1.8fr 2.1fr;
+    grid-template-columns: 2.3fr 1.8fr 2.3fr;
     padding: 2.5rem;
     gap: 2.5rem;
 }
@@ -182,5 +182,3 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
-
-
