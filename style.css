@@ -38,7 +38,7 @@ body {
 }
 
 .layout {
-    height: 77vh;
+    height: 83vh;
     display: grid;
     grid-template-columns: 2.3fr 1.8fr 2.3fr;
     padding: 2.5rem;
@@ -115,7 +115,7 @@ button:active {
     inset: 40%;
     border-radius: 50%;
     background: #8fefff;
-    box-shadow: 0 0 2.5rem #8fefff, inset 0 0 1.5625rem #8fefff;
+    box-shadow: 0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff;
     z-index: 10;
 }
 
@@ -128,7 +128,9 @@ button:active {
     transform: translate(-50%, -50%) scale(1);
     opacity: 0.5;
 }
-
+ .pulse2{
+    border: 6px solid red;
+ }
 .r1 { width: 3.75rem; height: 3.75rem; }
 .r2 { width: 6.25rem; height: 6.25rem; }
 .r3 { width: 8.75rem; height: 8.75rem; }
@@ -182,5 +184,12 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
+@keyframes rotateError {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
 
-
+.ring-error {
+    animation: rotateError 3s linear infinite;
+    border-left: 7px solid rgb(153, 255, 0);
+}
