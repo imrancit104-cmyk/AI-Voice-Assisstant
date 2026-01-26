@@ -48,7 +48,7 @@ startBtn.addEventListener('click', () => {
         startBtn.disabled = true;
         rings.forEach(ring => ring.classList.add('pulse'));
         recognition.stop();
-        let testing = new SpeechSynthesisUtterance('Greetings, I am your AI assistant. How can I assist you today?');
+        let testing = new SpeechSynthesisUtterance('Greetings, I am your arim AI assistant. How can I assist you today?');
         testing.lang = 'en-US';
         speechSynthesis.speak(testing);
         testing.onend = () => {
@@ -99,4 +99,5 @@ recognition.onresult = async (event) => {
         }
     };
 };
+
 
