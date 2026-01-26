@@ -66,6 +66,7 @@ body {
     padding: 0.9375rem;
     line-height: 1.6;
     overflow-y: auto;
+    font-size: 17px;
 }
 
 .controls {
@@ -181,4 +182,5 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
+
 
