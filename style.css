@@ -38,7 +38,7 @@ body {
 }
 
 .layout {
-    height: 83vh;
+    height: 80vh;
     display: grid;
     grid-template-columns: 2.3fr 1.8fr 2.3fr;
     padding: 2.5rem;
@@ -182,3 +182,4 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
+
