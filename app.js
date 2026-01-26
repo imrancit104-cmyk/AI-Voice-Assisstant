@@ -74,9 +74,15 @@ stopBtn.addEventListener('click', () => {
     }
 });
 recognition.onerror = (event) => {
+   recognition.onerror = (event) => {
+    if(event.error=='no-speech' || event.error=='aborted') {
+        if(isActive) recognition.start();
+    }
     if(event.error=='network'){
- status.textContent = 'Please check your Internet connection.';
+        status.textContent = 'Please check your Internet connection.';
     } 
+};
+
 };
 
 recognition.onresult = async (event) => {
@@ -99,5 +105,6 @@ recognition.onresult = async (event) => {
         }
     };
 };
+
 
 
