@@ -95,7 +95,7 @@ recognition.onerror = (event) => {
     if (event.error === 'network') {
         status.textContent = 'Please check your Internet connection and then try again by using Active button or refresh.';
         isActive = false;
-        aiActive.textContent = "Network Connection Lost!";
+        aiActive.textContent = "Network Connection Loose!";
         core.style.backgroundColor='yellow'
         core.style.boxShadow='0px 0px 0px'
         recognition.stop();
@@ -126,4 +126,5 @@ recognition.onresult = async (event) => {
         }
     };
 };
+
 
