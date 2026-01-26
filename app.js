@@ -1,15 +1,16 @@
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const status = document.getElementById('status');
-let output=document.getElementById('output');
-let aiActive=document.getElementById('aiactive');
+let output = document.getElementById('output');
+let aiActive = document.getElementById('aiactive');
+let core = document.querySelector('.core');
+const rings = document.querySelectorAll('.ring');
 let isActive = false;
 let controller;
 const endSound = new Audio('endsound.mp3');
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
 recognition.continuous = true;
-const rings = document.querySelectorAll('.ring');
 const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
@@ -20,14 +21,13 @@ async function getGroqResponse(userText) {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${GROQ_API_KEY}`
             },
-            signal:controller.signal,
+            signal: controller.signal,
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: "You are a helpful assistant. Keep your responses concise and suitable for voice output." },
                     { role: "user", content: userText }
-                ],
-    
+                ]
             })
         });
         const data = await response.json();
@@ -40,27 +40,35 @@ async function getGroqResponse(userText) {
         return "There was an error connecting to the assistant service.";
     }
 }
+
 startBtn.addEventListener('click', () => {
-   if (!isActive) {
+    if (!isActive) {
         isActive = true;
-        aiActive.textContent="AI Voice Assisstant Active"
+        core.style.backgroundColor='#8fefff'
+        core.style.boxShadow='0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
+        aiActive.textContent = "AI Voice Assistant Active";
         status.textContent = "Assistant is listening...";
         startBtn.disabled = true;
-        rings.forEach(ring => ring.classList.add('pulse'));
-        recognition.stop();
-        let testing = new SpeechSynthesisUtterance('Greetings, I am your arim AI assistant. How can I assist you today?');
+        rings.forEach(r => r.classList.remove('ring-error','pulse2'));
+        rings.forEach(r => r.classList.add('pulse'));
+
+        core.classList.add('core-glow');
+        let testing = new SpeechSynthesisUtterance('Greetings, I am your Arim AI assistant. How can I assist you today?');
         testing.lang = 'en-US';
         speechSynthesis.speak(testing);
+
         testing.onend = () => {
-            recognition.start();
+            recognition.start(); 
         };
     }
 });
+
+
 stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
-         aiActive.textContent="AI Voice Assisstant Disable"
-         output.innerHTML='';
+        aiActive.textContent = "AI Voice Assistant Disabled";
+        output.innerHTML = '';
         if (controller) {
             controller.abort();
             controller = null;
@@ -70,19 +78,34 @@ stopBtn.addEventListener('click', () => {
         endSound.play();
         status.textContent = "Assistant stopped.";
         startBtn.disabled = false;
-        rings.forEach(ring => ring.classList.remove('pulse'));
+
+        rings.forEach(r => r.classList.remove('pulse'));
     }
 });
-recognition.onerror = (event) => {
-   recognition.onerror = (event) => {
-    if(event.error=='no-speech' || event.error=='aborted') {
-        if(isActive) recognition.start();
+recognition.onend = () => {
+    if (isActive) {
+        recognition.start();
     }
-    if(event.error=='network'){
-        status.textContent = 'Please check your Internet connection.';
-    } 
 };
 
+recognition.onerror = (event) => {
+    if (event.error === 'no-speech' || event.error === 'aborted') {
+        if (isActive) recognition.start();
+    }
+    if (event.error === 'network') {
+        status.textContent = 'Please check your Internet connection and then try again by using Active button or refresh.';
+        isActive = false;
+        aiActive.textContent = "Network Connection Lost!";
+        core.style.backgroundColor='yellow'
+        core.style.boxShadow='0px 0px 0px'
+        recognition.stop();
+        speechSynthesis.cancel();
+        endSound.play();
+        startBtn.disabled = false;
+        rings.forEach(r => r.classList.remove('pulse'));
+        rings.forEach(r => r.classList.add('ring-error','pulse2'));
+     
+    }
 };
 
 recognition.onresult = async (event) => {
@@ -93,18 +116,13 @@ recognition.onresult = async (event) => {
     if (!answer || !isActive) 
         return;
     status.textContent = `You asked: "${userText}"`;
-    output.innerHTML=answer;
+    output.innerHTML = answer;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
-
     utterance.onend = () => {
-        if (isActive) 
-            {
-            recognition.start();
+        if (isActive) {
+            recognition.start(); 
         }
     };
 };
-
-
-
