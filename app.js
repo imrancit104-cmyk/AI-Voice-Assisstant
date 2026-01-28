@@ -87,7 +87,7 @@ stopBtn.addEventListener('click', () => {
     }
 });
 recognition.onerror = (event) => {
-    if (event.error === 'no-speech'||event.error==='aborted') {
+    if (event.error === 'no-speech') {
         if (isActive)
              recognition.start();
     }
@@ -136,3 +136,4 @@ recognition.onresult = async (event) => {
         }
     };
 };
+
