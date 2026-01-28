@@ -7,11 +7,13 @@ let core = document.querySelector('.core');
 const rings = document.querySelectorAll('.ring');
 let isActive = false;
 let controller;
+const startSound=new Audio('startsound.mp3')
 const endSound = new Audio('endsound.mp3');
+const errorSound=new Audio('errorsound.mp3');
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
 recognition.continuous = true;
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
         controller = new AbortController();
@@ -44,25 +46,27 @@ async function getGroqResponse(userText) {
 startBtn.addEventListener('click', () => {
     if (!isActive) {
         isActive = true;
-        core.style.backgroundColor='#8fefff'
+        startSound.play();
+        core.classList.remove('core-wifi')
+        rings.forEach(r => r.classList.add('pulse'));
+        rings.forEach(r => r.classList.remove('pulse2'));
+        core.style.top='40.2%'
         core.style.boxShadow='0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
+        core.style.backgroundColor='#8fefff'
+         aiActive.style.color='#8fefff';
         aiActive.textContent = "ARIM Assistant Active";
         status.textContent = "Assistant is listening...";
         startBtn.disabled = true;
-        rings.forEach(r => r.classList.remove('ring-error','pulse2'));
-        rings.forEach(r => r.classList.add('pulse'));
-
-        core.classList.add('core-glow');
+        setTimeout(()=>{
         let testing = new SpeechSynthesisUtterance('Greetings, I am your Arim AI assistant. How can I assist you today?');
         testing.lang = 'en-US';
         speechSynthesis.speak(testing);
-
         testing.onend = () => {
             recognition.start(); 
-        };
+        }; 
+        },1000) 
     }
 });
-
 
 stopBtn.addEventListener('click', () => {
     if (isActive) {
@@ -78,7 +82,6 @@ stopBtn.addEventListener('click', () => {
         endSound.play();
         status.textContent = "Assistant stopped.";
         startBtn.disabled = false;
-
         rings.forEach(r => r.classList.remove('pulse'));
     }
 });
@@ -89,21 +92,26 @@ recognition.onend = () => {
 };
 
 recognition.onerror = (event) => {
-    if (event.error === 'no-speech' || event.error === 'aborted') {
-        if (isActive) recognition.start();
+    if (event.error === 'no-speech'||event.error==='aborted') {
+        if (isActive)
+             recognition.start();
     }
     if (event.error === 'network') {
         status.textContent = 'Please check your Internet connection and then try again by using Active button or refresh.';
         isActive = false;
         aiActive.textContent = "Network Connection Loose!";
-        core.style.backgroundColor='yellow'
-        core.style.boxShadow='0px 0px 0px'
+        aiActive.style.color='rgb(235, 154, 83)';
+        rings.forEach(r => r.classList.remove('pulse'));
+        rings.forEach(r => r.classList.add('pulse2'));
+        core.classList.add('core-wifi')
+        core.style.backgroundColor='rgb(255, 119, 0)'
+        core.style.boxShadow='0 0 0'
+        core.style.top='79%'
         recognition.stop();
         speechSynthesis.cancel();
-        endSound.play();
+       errorSound.play();
         startBtn.disabled = false;
-        rings.forEach(r => r.classList.remove('pulse'));
-        rings.forEach(r => r.classList.add('ring-error','pulse2'));
+        
      
     }
 };
@@ -126,5 +134,3 @@ recognition.onresult = async (event) => {
         }
     };
 };
-
-
