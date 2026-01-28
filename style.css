@@ -60,7 +60,7 @@ body {
 }
 
 .log {
-    height: 13.25rem;
+    height: 15rem;
     background: rgba(0,0,0,.7);
     border: 0.0625rem solid #8fefff;
     padding: 0.9375rem;
@@ -216,4 +216,5 @@ button:active {
     width: 2.6rem;
     left: 42%;
  }
+
 
