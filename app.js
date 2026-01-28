@@ -6,13 +6,14 @@ let aiActive = document.getElementById('aiactive');
 let core = document.querySelector('.core');
 const rings = document.querySelectorAll('.ring');
 let isActive = false;
+let isSpeaking=false;
 let controller;
 const startSound=new Audio('startsound.mp3')
 const endSound = new Audio('endsound.mp3');
 const errorSound=new Audio('errorsound.mp3');
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
-recognition.continuous = true;
+recognition.continuous = false;
 const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
@@ -45,6 +46,7 @@ async function getGroqResponse(userText) {
 
 startBtn.addEventListener('click', () => {
     if (!isActive) {
+        recognition.stop();
         isActive = true;
         startSound.play();
         core.classList.remove('core-wifi')
@@ -67,7 +69,6 @@ startBtn.addEventListener('click', () => {
         },1000) 
     }
 });
-
 stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
@@ -85,12 +86,6 @@ stopBtn.addEventListener('click', () => {
         rings.forEach(r => r.classList.remove('pulse'));
     }
 });
-recognition.onend = () => {
-    if (isActive) {
-        recognition.start();
-    }
-};
-
 recognition.onerror = (event) => {
     if (event.error === 'no-speech'||event.error==='aborted') {
         if (isActive)
@@ -109,26 +104,33 @@ recognition.onerror = (event) => {
         core.style.top='79%'
         recognition.stop();
         speechSynthesis.cancel();
-       errorSound.play();
+        errorSound.play();
         startBtn.disabled = false;
-        
-     
     }
 };
+recognition.onend=()=>{
+    if(isActive){
+        recognition.start();
+    }
+}
 
 recognition.onresult = async (event) => {
+    if(isSpeaking)
+        return;
+    recognition.stop();
     const userText = event.results[0][0].transcript.toLowerCase();
     status.textContent = `You asked: "${userText}" | Thinking...`;
-    recognition.stop();
     const answer = await getGroqResponse(userText);
     if (!answer || !isActive) 
         return;
     status.textContent = `You asked: "${userText}"`;
     output.innerHTML = answer;
+    isSpeaking=true;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
     utterance.onend = () => {
+        isSpeaking=false;
         if (isActive) {
             recognition.start(); 
         }
