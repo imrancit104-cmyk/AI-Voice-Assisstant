@@ -7,7 +7,7 @@
 
 body {
     height: 100vh;
-    background: radial-gradient(circle at center, #071b24, #02090d);
+    background: radial-gradient(circle at center, #070824, #04010b);
     color: #8fefff;
     overflow-x: hidden;
 }
@@ -16,8 +16,8 @@ body {
     position: fixed;
     inset: 0;
     background:
-        linear-gradient(rgba(143,239,255,.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(143,239,255,.05) 1px, transparent 1px);
+        linear-gradient(rgba(143,239,255,.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(143,239,255,.1) 1px, transparent 1px);
     background-size: 2rem 2rem;
     z-index: -1;
 }
@@ -38,7 +38,6 @@ body {
 }
 
 .layout {
-    height: 83vh;
     display: grid;
     grid-template-columns: 2.3fr 1.8fr 2.3fr;
     padding: 2.5rem;
@@ -48,9 +47,10 @@ body {
 .panel {
     background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.6));
     border-radius: 1.375rem;
-    padding: 1.875rem;
-    border: 0.0625rem solid #8fefff;
+    padding: 1.5rem;
+    border: 0.065rem solid #8fefff;
     box-shadow: 0 1.5625rem 3.75rem rgba(0,0,0,0.6);
+    
 }
 
 .panel h3 {
@@ -60,13 +60,13 @@ body {
 }
 
 .log {
-    height: 16.25rem;
-    background: rgba(0,0,0,.65);
+    height: 13.25rem;
+    background: rgba(0,0,0,.7);
     border: 0.0625rem solid #8fefff;
     padding: 0.9375rem;
     line-height: 1.6;
     overflow-y: auto;
-    font-size: 17px;
+    font-size: 15px;
 }
 
 .controls {
@@ -107,16 +107,20 @@ button:active {
 .reactor {
     position: relative;
     width: 16.25rem;
-    height: 16.25rem;
+    height: 15.25rem;
+    margin-top: 3%;
 }
 
 .core {
     position: absolute;
-    inset: 40%;
+    top: 40.2%;
+    left: 40.8%;
     border-radius: 50%;
     background: #8fefff;
-    box-shadow: 0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff;
-    z-index: 10;
+    box-shadow: 0 0 1rem #8fefff;
+    width: 3rem;
+    height: 3rem;
+    z-index: 1000;
 }
 
 .ring {
@@ -126,36 +130,35 @@ button:active {
     border-radius: 50%;
     border: 0.125rem solid rgba(143,239,255,0.6);
     transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
+    opacity: 1;
+    box-shadow: 0 0 .7rem #8fefff ;
 }
- .pulse2{
-    border: 6px solid red;
- }
 .r1 { width: 3.75rem; height: 3.75rem; }
 .r2 { width: 6.25rem; height: 6.25rem; }
 .r3 { width: 8.75rem; height: 8.75rem; }
+.r4 { width: 11.25rem; height: 11.25rem; }
 
 .pulse {
     animation: wavePulse 2.8s ease-out infinite;
-    opacity: 0.8;
+    opacity: 1;
     border-color: #8fefff;
-    box-shadow: 0 0 3.125rem rgba(143,239,255,.6);
+    box-shadow: 0 0 2.125rem #8feefffe;
 }
 
 @keyframes wavePulse {
-    0% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.7; }
-    50% { transform: translate(-50%, -50%) scale(2.0); opacity: 0.3; }
-    100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+    0% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.3; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
 }
-
 .ai-text {
     text-align: center;
-    margin-top: 1.25rem;
+    margin-top: 3rem;
     font-size: 1.2rem;
     opacity: 0.8;
     letter-spacing: 1px;
     border: 0.0625rem solid #8fefff;
-    width: 17rem;
+    border-radius: 1rem;
+    width: 19rem;
     height: 3rem;
     padding: 0.5rem;
 }
@@ -164,12 +167,17 @@ button:active {
     .layout {
         grid-template-columns: 1fr;
     }
-    button{
+    button{  
     margin-top: 1.5rem;
+    border: 0.2rem solid #8fefff;
 }
 .log{
     height: 22rem;
+    border: 0.2rem solid #8fefff;
+    font-size: 1.5rem;
 }
+.panel{
+    border: 0.2rem solid #8fefff;}
 }
 .righpannelh3 {
     margin-top: 2rem;
@@ -184,12 +192,28 @@ button:active {
     margin: 0.25rem 0;
     letter-spacing: 0.125rem;
 }
-@keyframes rotateError {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
+ .pulse2{ 
+    margin-top: 37%;
+     animation: wifi 1s linear infinite;
+      box-shadow:none;
+    border-top: 10px solid rgb(231, 124, 30);
+    border-bottom:10px solid transparent;
+    border-left: 10px solid transparent;
+    border-right:10px solid transparent;
+    transform: translate(-50%, -50%)  scale(1.7) rotate(-1.1deg)
+    
+ }
 
-.ring-error {
-    animation: rotateError 3s linear infinite;
-    border-left: 7px solid rgb(153, 255, 0);
-}
+ @keyframes wifi {
+   0%{opacity: 20%;} 
+   25%{opacity: 100%;} 
+   50%{opacity: 100%;} 
+   100%{opacity: 20%;} 
+ }
+ .core-wifi{
+    animation: wifi 1s linear infinite;
+    height: 2.4rem;
+    width: 2.6rem;
+    left: 42%;
+ }
+
