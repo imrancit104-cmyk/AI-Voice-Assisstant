@@ -14,7 +14,7 @@ const errorSound=new Audio('errorsound.mp3');
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
 recognition.continuous = false;
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
         controller = new AbortController();
