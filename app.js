@@ -6,15 +6,22 @@ let aiActive = document.getElementById('aiactive');
 let core = document.querySelector('.core');
 const rings = document.querySelectorAll('.ring');
 let isActive = false;
-let isSpeaking=false;
+let isSpeaking = false;
+let isProcessingResponse = false;
 let controller;
-const startSound=new Audio('startsound.mp3')
+let restartTimeout;
+
+const startSound = new Audio('startsound.mp3');
 const endSound = new Audio('endsound.mp3');
-const errorSound=new Audio('errorsound.mp3');
+const errorSound = new Audio('errorsound.mp3');
+
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
 recognition.continuous = false;
+recognition.interimResults = false;
+
 const GROQ_API_KEY = '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';
+
 async function getGroqResponse(userText) {
     try {
         controller = new AbortController();
@@ -46,38 +53,60 @@ async function getGroqResponse(userText) {
 
 startBtn.addEventListener('click', () => {
     if (!isActive) {
-        recognition.stop();
+        if (recognition && isSpeaking) {
+            speechSynthesis.cancel();
+        }
+        if (restartTimeout) clearTimeout(restartTimeout);
+        
         isActive = true;
+        isSpeaking = false;
+        isProcessingResponse = false;
+        
         startSound.play();
-        core.classList.remove('core-wifi')
+        core.classList.remove('core-wifi');
         rings.forEach(r => r.classList.add('pulse'));
         rings.forEach(r => r.classList.remove('pulse2'));
-        core.style.top='40.2%'
-        core.style.boxShadow='0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
-        core.style.backgroundColor='#8fefff'
-         aiActive.style.color='#8fefff';
+        core.style.top = '40.2%';
+        core.style.boxShadow = '0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
+        core.style.backgroundColor = '#8fefff';
+        aiActive.style.color = '#8fefff';
         aiActive.textContent = "ARIM Assistant Active";
         status.textContent = "Assistant is listening...";
         startBtn.disabled = true;
-        setTimeout(()=>{
-        let testing = new SpeechSynthesisUtterance('Greetings, I am your Arim AI assistant. How can I assist you today?');
-        testing.lang = 'en-US';
-        speechSynthesis.speak(testing);
-        testing.onend = () => {
-            recognition.start(); 
-        }; 
-        },1000) 
+        
+        setTimeout(() => {
+            let testing = new SpeechSynthesisUtterance('Greetings, I am your Arim AI assistant. How can I assist you today?');
+            testing.lang = 'en-US';
+            
+            testing.onend = () => {
+                setTimeout(() => {
+                    if (isActive && !isSpeaking) {
+                        recognition.start();
+                    }
+                }, 1000);
+            };
+            
+            speechSynthesis.speak(testing);
+        }, 1000);
     }
 });
+
 stopBtn.addEventListener('click', () => {
     if (isActive) {
         isActive = false;
+        isSpeaking = false;
+        isProcessingResponse = false;
+        
         aiActive.textContent = "ARIM Assistant Disabled";
         output.innerHTML = '';
+        
         if (controller) {
             controller.abort();
             controller = null;
         }
+        
+        if (restartTimeout) clearTimeout(restartTimeout);
+        
         recognition.stop();
         speechSynthesis.cancel();
         endSound.play();
@@ -86,54 +115,93 @@ stopBtn.addEventListener('click', () => {
         rings.forEach(r => r.classList.remove('pulse'));
     }
 });
+
 recognition.onerror = (event) => {
     if (event.error === 'no-speech') {
-        if (isActive)
-             recognition.start();
+        if (isActive && !isSpeaking && !isProcessingResponse) {
+            setTimeout(() => recognition.start(), 500);
+        }
     }
     if (event.error === 'network') {
         status.textContent = 'Please check your Internet connection and then try again by using Active button or refresh.';
         isActive = false;
+        isSpeaking = false;
+        isProcessingResponse = false;
         aiActive.textContent = "Network Connection Loose!";
-        aiActive.style.color='rgb(235, 154, 83)';
+        aiActive.style.color = 'rgb(235, 154, 83)';
         rings.forEach(r => r.classList.remove('pulse'));
         rings.forEach(r => r.classList.add('pulse2'));
-        core.classList.add('core-wifi')
-        core.style.backgroundColor='rgb(255, 119, 0)'
-        core.style.boxShadow='0 0 0'
-        core.style.top='79%'
+        core.classList.add('core-wifi');
+        core.style.backgroundColor = 'rgb(255, 119, 0)';
+        core.style.boxShadow = '0 0 0';
+        core.style.top = '79%';
         recognition.stop();
         speechSynthesis.cancel();
         errorSound.play();
         startBtn.disabled = false;
     }
 };
-recognition.onend=()=>{
-    if(isActive){
-        recognition.start();
-    }
-}
 
-recognition.onresult = async (event) => {
-    if(isSpeaking)
-        return;
-    recognition.stop();
-    const userText = event.results[0][0].transcript.toLowerCase();
-    status.textContent = `You asked: "${userText}" | Thinking...`;
-    const answer = await getGroqResponse(userText);
-    if (!answer || !isActive) 
-        return;
-    status.textContent = `You asked: "${userText}"`;
-    output.innerHTML = answer;
-    isSpeaking=true;
-    const utterance = new SpeechSynthesisUtterance(answer);
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-    utterance.onend = () => {
-        isSpeaking=false;
-        if (isActive) {
-            recognition.start(); 
-        }
-    };
+recognition.onend = () => {
+    if (isActive && !isSpeaking && !isProcessingResponse) {
+        if (restartTimeout) clearTimeout(restartTimeout);
+        restartTimeout = setTimeout(() => {
+            if (isActive && !isSpeaking && !isProcessingResponse) {
+                recognition.start();
+            }
+        }, 1000);
+    }
 };
 
+recognition.onresult = async (event) => {
+    if (isSpeaking || isProcessingResponse) {
+        return;
+    }
+    
+    isProcessingResponse = true;
+    
+    if (restartTimeout) clearTimeout(restartTimeout);
+    recognition.stop();
+    
+    const userText = event.results[0][0].transcript.toLowerCase();
+    status.textContent = `You asked: "${userText}" | Thinking...`;
+    
+    const answer = await getGroqResponse(userText);
+    
+    if (!answer || !isActive) {
+        isProcessingResponse = false;
+        if (isActive && !isSpeaking) {
+            setTimeout(() => recognition.start(), 500);
+        }
+        return;
+    }
+    
+    status.textContent = `You asked: "${userText}"`;
+    output.innerHTML = answer;
+    isSpeaking = true;
+    
+    const utterance = new SpeechSynthesisUtterance(answer);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    
+    utterance.onend = () => {
+        isSpeaking = false;
+        isProcessingResponse = false;
+        
+        setTimeout(() => {
+            if (isActive && !isSpeaking && !isProcessingResponse) {
+                recognition.start();
+            }
+        }, 2000);
+    };
+    
+    utterance.onerror = () => {
+        isSpeaking = false;
+        isProcessingResponse = false;
+        if (isActive) {
+            setTimeout(() => recognition.start(), 1000);
+        }
+    };
+    
+    speechSynthesis.speak(utterance);
+};
