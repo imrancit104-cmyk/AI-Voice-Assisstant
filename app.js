@@ -10,6 +10,8 @@ let isSpeaking = false;
 let isProcessingResponse = false;
 let controller;
 let restartTimeout;
+let speechTimeout;
+let interimTranscript = '';
 
 const startSound = new Audio('startsound.mp3');
 const endSound = new Audio('endsound.mp3');
@@ -17,8 +19,9 @@ const errorSound = new Audio('errorsound.mp3');
 
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';
-recognition.continuous = false;
-recognition.interimResults = false;
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.maxAlternatives = 1;
 
 const GROQ_API_KEY = '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';
 
@@ -51,16 +54,79 @@ async function getGroqResponse(userText) {
     }
 }
 
+function resetSpeechTimeout() {
+    if (speechTimeout) clearTimeout(speechTimeout);
+    speechTimeout = setTimeout(() => {
+        if (isActive && !isSpeaking && !isProcessingResponse && interimTranscript) {
+            processFinalTranscript(interimTranscript);
+        }
+    }, 1500);
+}
+
+async function processFinalTranscript(finalText) {
+    if (!finalText.trim() || isSpeaking || isProcessingResponse) return;
+    
+    isProcessingResponse = true;
+    recognition.stop();
+    
+    if (speechTimeout) clearTimeout(speechTimeout);
+    
+    status.textContent = `You asked: "${finalText}" | Thinking...`;
+    
+    const answer = await getGroqResponse(finalText);
+    
+    if (!answer || !isActive) {
+        isProcessingResponse = false;
+        interimTranscript = '';
+        if (isActive && !isSpeaking) {
+            setTimeout(() => recognition.start(), 500);
+        }
+        return;
+    }
+    
+    status.textContent = `You asked: "${finalText}"`;
+    output.innerHTML = answer;
+    isSpeaking = true;
+    
+    const utterance = new SpeechSynthesisUtterance(answer);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    
+    utterance.onend = () => {
+        isSpeaking = false;
+        isProcessingResponse = false;
+        interimTranscript = '';
+        
+        setTimeout(() => {
+            if (isActive && !isSpeaking && !isProcessingResponse) {
+                recognition.start();
+            }
+        }, 1000);
+    };
+    
+    utterance.onerror = () => {
+        isSpeaking = false;
+        isProcessingResponse = false;
+        if (isActive) {
+            setTimeout(() => recognition.start(), 1000);
+        }
+    };
+    
+    speechSynthesis.speak(utterance);
+}
+
 startBtn.addEventListener('click', () => {
     if (!isActive) {
         if (recognition && isSpeaking) {
             speechSynthesis.cancel();
         }
         if (restartTimeout) clearTimeout(restartTimeout);
+        if (speechTimeout) clearTimeout(speechTimeout);
         
         isActive = true;
         isSpeaking = false;
         isProcessingResponse = false;
+        interimTranscript = '';
         
         startSound.play();
         core.classList.remove('core-wifi');
@@ -83,7 +149,7 @@ startBtn.addEventListener('click', () => {
                     if (isActive && !isSpeaking) {
                         recognition.start();
                     }
-                }, 1000);
+                }, 500);
             };
             
             speechSynthesis.speak(testing);
@@ -96,6 +162,7 @@ stopBtn.addEventListener('click', () => {
         isActive = false;
         isSpeaking = false;
         isProcessingResponse = false;
+        interimTranscript = '';
         
         aiActive.textContent = "ARIM Assistant Disabled";
         output.innerHTML = '';
@@ -106,6 +173,7 @@ stopBtn.addEventListener('click', () => {
         }
         
         if (restartTimeout) clearTimeout(restartTimeout);
+        if (speechTimeout) clearTimeout(speechTimeout);
         
         recognition.stop();
         speechSynthesis.cancel();
@@ -143,65 +211,40 @@ recognition.onerror = (event) => {
 };
 
 recognition.onend = () => {
-    if (isActive && !isSpeaking && !isProcessingResponse) {
+    if (isActive && !isSpeaking && !isProcessingResponse && !interimTranscript) {
         if (restartTimeout) clearTimeout(restartTimeout);
         restartTimeout = setTimeout(() => {
             if (isActive && !isSpeaking && !isProcessingResponse) {
                 recognition.start();
             }
-        }, 1000);
+        }, 500);
     }
 };
 
-recognition.onresult = async (event) => {
-    if (isSpeaking || isProcessingResponse) {
-        return;
+recognition.onresult = (event) => {
+    if (isSpeaking || isProcessingResponse) return;
+    
+    let currentTranscript = '';
+    
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+            currentTranscript += transcript;
+        } else {
+            interimTranscript += transcript;
+            status.textContent = `Listening: "${interimTranscript}"`;
+        }
     }
     
-    isProcessingResponse = true;
-    
-    if (restartTimeout) clearTimeout(restartTimeout);
-    recognition.stop();
-    
-    const userText = event.results[0][0].transcript.toLowerCase();
-    status.textContent = `You asked: "${userText}" | Thinking...`;
-    
-    const answer = await getGroqResponse(userText);
-    
-    if (!answer || !isActive) {
-        isProcessingResponse = false;
-        if (isActive && !isSpeaking) {
-            setTimeout(() => recognition.start(), 500);
-        }
-        return;
+    if (currentTranscript) {
+        interimTranscript = currentTranscript;
+        resetSpeechTimeout();
+    } else if (interimTranscript) {
+        resetSpeechTimeout();
     }
-    
-    status.textContent = `You asked: "${userText}"`;
-    output.innerHTML = answer;
-    isSpeaking = true;
-    
-    const utterance = new SpeechSynthesisUtterance(answer);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9;
-    
-    utterance.onend = () => {
-        isSpeaking = false;
-        isProcessingResponse = false;
-        
-        setTimeout(() => {
-            if (isActive && !isSpeaking && !isProcessingResponse) {
-                recognition.start();
-            }
-        }, 2000);
-    };
-    
-    utterance.onerror = () => {
-        isSpeaking = false;
-        isProcessingResponse = false;
-        if (isActive) {
-            setTimeout(() => recognition.start(), 1000);
-        }
-    };
-    
-    speechSynthesis.speak(utterance);
+};
+
+recognition.onstart = () => {
+    interimTranscript = '';
+    status.textContent = "Assistant is listening... Speak your question";
 };
