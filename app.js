@@ -10,13 +10,14 @@ let isSpeaking = false;
 let controller;
 let isAwaitingResponse = false;
 let finalTranscript = '';
+let lastProcessedText = '';
 
 const startSound = new Audio('startsound.mp3');
 const endSound = new Audio('endsound.mp3');
 const errorSound = new Audio('errorsound.mp3');
 
 let recognition;
-let silenceTimer;
+let processTimer;
 let isRecognizing = false;
 
 function initRecognition() {
@@ -29,25 +30,25 @@ function initRecognition() {
     recognition.onstart = () => {
         isRecognizing = true;
         finalTranscript = '';
-        status.textContent = "Listening... Please speak your question";
+        status.textContent = "Listening...";
     };
     
     recognition.onerror = (event) => {
         if (event.error === 'no-speech') {
             if (isActive && !isSpeaking && !isAwaitingResponse) {
                 setTimeout(() => {
-                    if (isActive && !isSpeaking && !isAwaitingResponse) {
+                    if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                         recognition.start();
                     }
-                }, 500);
+                }, 300);
             }
         }
         if (event.error === 'network') {
-            status.textContent = 'Network error. Please check your connection.';
+            status.textContent = 'Please check your Internet connection and then try again by using Active button or refresh.';
             isActive = false;
             isSpeaking = false;
             isAwaitingResponse = false;
-            aiActive.textContent = "Network Connection Lost!";
+            aiActive.textContent = "Network Connection Loose!";
             aiActive.style.color = 'rgb(235, 154, 83)';
             rings.forEach(r => r.classList.remove('pulse'));
             rings.forEach(r => r.classList.add('pulse2'));
@@ -55,7 +56,7 @@ function initRecognition() {
             core.style.backgroundColor = 'rgb(255, 119, 0)';
             core.style.boxShadow = '0 0 0';
             core.style.top = '79%';
-            recognition.stop();
+            if (recognition) recognition.stop();
             speechSynthesis.cancel();
             errorSound.play();
             startBtn.disabled = false;
@@ -64,44 +65,43 @@ function initRecognition() {
     
     recognition.onend = () => {
         isRecognizing = false;
-        if (isActive && !isSpeaking && !isAwaitingResponse && finalTranscript) {
+        if (processTimer) clearTimeout(processTimer);
+        
+        if (isActive && !isSpeaking && !isAwaitingResponse && finalTranscript && finalTranscript.trim() !== lastProcessedText) {
             processUserInput(finalTranscript);
         } else if (isActive && !isSpeaking && !isAwaitingResponse) {
             setTimeout(() => {
-                if (isActive && !isSpeaking && !isAwaitingResponse) {
+                if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                     recognition.start();
                 }
-            }, 500);
+            }, 200);
         }
     };
     
     recognition.onresult = (event) => {
         if (isSpeaking || isAwaitingResponse) return;
         
-        if (silenceTimer) clearTimeout(silenceTimer);
+        if (processTimer) clearTimeout(processTimer);
         
-        let interimText = '';
+        let currentTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                finalTranscript += transcript + ' ';
-            } else {
-                interimText += transcript;
+                currentTranscript += transcript + ' ';
             }
         }
         
-        if (interimText) {
-            status.textContent = `Listening: "${interimText}"`;
-        } else if (finalTranscript) {
+        if (currentTranscript) {
+            finalTranscript = currentTranscript;
             status.textContent = `Heard: "${finalTranscript.trim()}"`;
+            
+            processTimer = setTimeout(() => {
+                if (finalTranscript && finalTranscript.trim() && isActive && !isSpeaking && !isAwaitingResponse && finalTranscript.trim() !== lastProcessedText) {
+                    recognition.stop();
+                }
+            }, 800);
         }
-        
-        silenceTimer = setTimeout(() => {
-            if (finalTranscript.trim() && isActive && !isSpeaking && !isAwaitingResponse) {
-                recognition.stop();
-            }
-        }, 1500);
     };
 }
 
@@ -110,6 +110,11 @@ const GROQ_API_KEY = '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';
 async function getGroqResponse(userText) {
     try {
         controller = new AbortController();
+        
+        const timeoutId = setTimeout(() => {
+            if (controller) controller.abort();
+        }, 8000);
+        
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -120,19 +125,27 @@ async function getGroqResponse(userText) {
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
-                    { role: "system", content: "You are a helpful assistant. Keep your responses concise and suitable for voice output." },
+                    { role: "system", content: "You are a helpful assistant. Keep your responses very concise and short for voice output." },
                     { role: "user", content: userText }
-                ]
+                ],
+                temperature: 0.7,
+                max_tokens: 150
             })
         });
+        
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
         if (data.choices && data.choices.length > 0) {
             return data.choices[0].message.content;
         } else {
-            return "I'm sorry, I couldn't process that request.";
+            return "I couldn't process that.";
         }
     } catch (error) {
-        return "There was an error connecting to the assistant service.";
+        if (error.name === 'AbortError') {
+            return "Request timed out. Please try again.";
+        }
+        return "Connection error. Please check your internet.";
     }
 }
 
@@ -141,31 +154,39 @@ async function processUserInput(userText) {
     
     isAwaitingResponse = true;
     const cleanedText = userText.trim();
+    lastProcessedText = cleanedText;
     
-    status.textContent = `You asked: "${cleanedText}" | Getting response...`;
+    status.textContent = `Processing: "${cleanedText}"`;
     
+    const startTime = Date.now();
     const answer = await getGroqResponse(cleanedText);
+    const elapsedTime = Date.now() - startTime;
     
     if (!answer || !isActive) {
         isAwaitingResponse = false;
         finalTranscript = '';
         if (isActive && !isSpeaking) {
             setTimeout(() => {
-                if (isActive && !isSpeaking && !isAwaitingResponse) {
+                if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                     recognition.start();
                 }
-            }, 500);
+            }, 200);
         }
         return;
     }
     
-    status.textContent = `You asked: "${cleanedText}"`;
+    status.textContent = `Response ready (${elapsedTime}ms)`;
     output.innerHTML = answer;
     isSpeaking = true;
     
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = 'en-US';
-    utterance.rate = 0.9;
+    utterance.rate = 1.0;
+    utterance.volume = 1;
+    
+    utterance.onstart = () => {
+        status.textContent = "Speaking response...";
+    };
     
     utterance.onend = () => {
         isSpeaking = false;
@@ -173,10 +194,10 @@ async function processUserInput(userText) {
         finalTranscript = '';
         
         setTimeout(() => {
-            if (isActive && !isSpeaking && !isAwaitingResponse) {
+            if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                 recognition.start();
             }
-        }, 1000);
+        }, 500);
     };
     
     utterance.onerror = () => {
@@ -184,10 +205,10 @@ async function processUserInput(userText) {
         isAwaitingResponse = false;
         if (isActive) {
             setTimeout(() => {
-                if (isActive && !isSpeaking && !isAwaitingResponse) {
+                if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                     recognition.start();
                 }
-            }, 1000);
+            }, 500);
         }
     };
     
@@ -200,43 +221,46 @@ startBtn.addEventListener('click', () => {
             speechSynthesis.cancel();
         }
         
-        if (silenceTimer) clearTimeout(silenceTimer);
+        if (processTimer) clearTimeout(processTimer);
         
         isActive = true;
         isSpeaking = false;
         isAwaitingResponse = false;
         finalTranscript = '';
+        lastProcessedText = '';
+        
+        core.classList.remove('core-wifi');
+        rings.forEach(r => r.classList.remove('pulse2'));
         
         if (!recognition) {
             initRecognition();
         }
         
         startSound.play();
-        core.classList.remove('core-wifi');
         rings.forEach(r => r.classList.add('pulse'));
-        rings.forEach(r => r.classList.remove('pulse2'));
         core.style.top = '40.2%';
         core.style.boxShadow = '0 0 2rem #8fefff, inset 0 0 1.5625rem #8fefff';
         core.style.backgroundColor = '#8fefff';
         aiActive.style.color = '#8fefff';
         aiActive.textContent = "ARIM Assistant Active";
-        status.textContent = "Starting assistant...";
+        status.textContent = "Starting...";
         startBtn.disabled = true;
         
         setTimeout(() => {
             let testing = new SpeechSynthesisUtterance('Greetings, I am your Arim AI assistant. How can I assist you today?');
             testing.lang = 'en-US';
+            testing.rate = 1.0;
             
             testing.onend = () => {
                 setTimeout(() => {
-                    if (isActive && !isSpeaking && !isAwaitingResponse) {
+                    if (isActive && !isSpeaking && !isAwaitingResponse && !isRecognizing) {
                         recognition.start();
                     }
-                }, 1000);
+                }, 300);
             };
             
             speechSynthesis.speak(testing);
-        }, 1000);
+        }, 500);
     }
 });
 
@@ -255,7 +279,7 @@ stopBtn.addEventListener('click', () => {
             controller = null;
         }
         
-        if (silenceTimer) clearTimeout(silenceTimer);
+        if (processTimer) clearTimeout(processTimer);
         
         if (recognition) {
             try {
@@ -270,6 +294,10 @@ stopBtn.addEventListener('click', () => {
         rings.forEach(r => r.classList.remove('pulse'));
         rings.forEach(r => r.classList.remove('pulse2'));
         core.classList.remove('core-wifi');
+        core.style.backgroundColor = '';
+        core.style.boxShadow = '';
+        core.style.top = '';
+        aiActive.style.color = '';
     }
 });
 
